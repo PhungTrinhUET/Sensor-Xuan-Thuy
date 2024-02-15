@@ -10,3 +10,5 @@ CREATE TABLE IF NOT EXISTS "weatherData" (
 );
 
 SELECT * FROM "weatherData"
+
+
