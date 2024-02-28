@@ -8,7 +8,7 @@ import datetime
 # Thông tin cần thiết
 USERNAME_ACCOUNT = "tenant@thingsboard.org"
 PASSWORD_ACCOUNT = "tenant"
-SCHEDULE_MINUTE = 10
+SCHEDULE_MINUTE = 1
 TIME_RANGE = SCHEDULE_MINUTE * 60
 END_TS = int(time.time()) * 1000
 START_TS = int(END_TS / 1000 - TIME_RANGE) * 1000
@@ -108,8 +108,9 @@ def drop_database_table(database, user, password, host, port):
 create_database_table(DATABASE, USERNAME_DB, PASSWORD_DB, HOST, PORT)
 
 if __name__ == "__main__":
-    start_ts = START_TS
-    end_ts = END_TS
+    
+    # END_TS = int(time.time()) * 1000
+    # START_TS = int(END_TS / 1000 - TIME_RANGE) * 1000
     entity_id = ENTITY_ID
     type = TYPE
     database = DATABASE
@@ -119,14 +120,27 @@ if __name__ == "__main__":
     port = PORT
 
     while True:
+        # ban dau em dung START_TS, END_TS la cac hang so, ma cac hang so nay khong lien tuc cap nhat nen moi lan get data no toan GET theo 2 hang so nay, khong thay doi
+        # bay gio em dua end_ts, start_ts vao trong nay, nhu ben duoi de no lien tuc cap nhat end_ts va start_ts
+        end_ts = int(time.time()) * 1000
+        start_ts = int(end_ts / 1000 - TIME_RANGE) * 1000
         now = "NOW: " + str(str(datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')))
         minute_left = "DATA WILL BE GOT IN: " + str(SCHEDULE_MINUTE - 1 - datetime.datetime.now().minute % SCHEDULE_MINUTE) + " minutes"
         print(now + " || " + minute_left, end="\r", flush=True)
         
         if (datetime.datetime.now().minute % SCHEDULE_MINUTE == 0):
+            print(f"{end_ts} {END_TS}")
             print("SEND DATA AT: " + str(datetime.datetime.utcnow()))
             token = get_access_token()
-            data = get_data(start_ts=start_ts, end_ts=end_ts, entity_id=entity_id, type=type, token=token)
+            data = get_data(start_ts=start_ts, end_ts=end_ts, entity_id=entity_id, type = type, token = token)
+    
+# CREATE TABLE IF NOT EXISTS "weatherData" (
+#     id SERIAL PRIMARY KEY,
+#     "dateTime" TIMESTAMP,
+#     "outsideHumidity" FLOAT,
+#     "outsideTemp" FLOAT
+# );
+# SELECT * FROM "weatherData"d, type=type, token=token)
             
             if len(data) != 0:
                 send_data_to_database(data=data, database=database, user=user, password=password, host=host, port=port)
